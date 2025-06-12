@@ -1,83 +1,86 @@
-# Sudoku-game
-import java.util.Scanner;
+public class SudokuSolver {
 
-public class SudokuGame {
-    static int[][] puzzle = {
-        {5, 3, 0, 0, 7, 0, 0, 0, 0},
-        {6, 0, 0, 1, 9, 5, 0, 0, 0},
-        {0, 9, 8, 0, 0, 0, 0, 6, 0},
-        {8, 0, 0, 0, 6, 0, 0, 0, 3},
-        {4, 0, 0, 8, 0, 3, 0, 0, 1},
-        {7, 0, 0, 0, 2, 0, 0, 0, 6},
-        {0, 6, 0, 0, 0, 0, 2, 8, 0},
-        {0, 0, 0, 4, 1, 9, 0, 0, 5},
-        {0, 0, 0, 0, 8, 0, 0, 7, 9}
-    };
-
-    static int[][] solution = {
-        {5, 3, 4, 6, 7, 8, 9, 1, 2},
-        {6, 7, 2, 1, 9, 5, 3, 4, 8},
-        {1, 9, 8, 3, 4, 2, 5, 6, 7},
-        {8, 5, 9, 7, 6, 1, 4, 2, 3},
-        {4, 2, 6, 8, 5, 3, 7, 9, 1},
-        {7, 1, 3, 9, 2, 4, 8, 5, 6},
-        {9, 6, 1, 5, 3, 7, 2, 8, 4},
-        {2, 8, 7, 4, 1, 9, 6, 3, 5},
-        {3, 4, 5, 2, 8, 6, 1, 7, 9}
-    };
+    // Size of the grid
+    private static final int SIZE = 9;
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int row, col, num;
+        int[][] board = {
+            {5, 3, 0, 0, 7, 0, 0, 0, 0},
+            {6, 0, 0, 1, 9, 5, 0, 0, 0},
+            {0, 9, 8, 0, 0, 0, 0, 6, 0},
+            {8, 0, 0, 0, 6, 0, 0, 0, 3},
+            {4, 0, 0, 8, 0, 3, 0, 0, 1},
+            {7, 0, 0, 0, 2, 0, 0, 0, 6},
+            {0, 6, 0, 0, 0, 0, 2, 8, 0},
+            {0, 0, 0, 4, 1, 9, 0, 0, 5},
+            {0, 0, 0, 0, 8, 0, 0, 7, 9}
+        };
 
-        while (true) {
-            printBoard();
-
-            System.out.print("Enter row (0-8), column (0-8), and number (1-9): ");
-            row = sc.nextInt();
-            col = sc.nextInt();
-            num = sc.nextInt();
-
-            if (puzzle[row][col] != 0) {
-                System.out.println("Cell already filled! Try a different one.");
-                continue;
-            }
-
-            if (solution[row][col] == num) {
-                puzzle[row][col] = num;
-                System.out.println("Correct move!");
-            } else {
-                System.out.println("Incorrect move!");
-            }
-
-            if (isComplete()) {
-                printBoard();
-                System.out.println("🎉 Congratulations! You completed the puzzle!");
-                break;
-            }
+        if (solveSudoku(board)) {
+            System.out.println("Solved Sudoku:");
+            printBoard(board);
+        } else {
+            System.out.println("No solution exists.");
         }
-
-        sc.close();
     }
 
-    static void printBoard() {
-        System.out.println("\nCurrent Sudoku Board:");
-        for (int i = 0; i < 9; i++) {
-            if (i % 3 == 0) System.out.println("+-------+-------+-------+");
-            for (int j = 0; j < 9; j++) {
-                if (j % 3 == 0) System.out.print("| ");
-                System.out.print(puzzle[i][j] == 0 ? ". " : puzzle[i][j] + " ");
+    // Solves the Sudoku board using backtracking
+    public static boolean solveSudoku(int[][] board) {
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                if (board[row][col] == 0) { // empty cell
+                    for (int num = 1; num <= 9; num++) {
+                        if (isValid(board, row, col, num)) {
+                            board[row][col] = num;
+
+                            if (solveSudoku(board)) {
+                                return true;
+                            }
+
+                            board[row][col] = 0; // backtrack
+                        }
+                    }
+                    return false; // no valid number found
+                }
             }
-            System.out.println("|");
         }
-        System.out.println("+-------+-------+-------+");
+        return true; // board is complete
     }
 
-    static boolean isComplete() {
-        for (int i = 0; i < 9; i++)
-            for (int j = 0; j < 9; j++)
-                if (puzzle[i][j] == 0)
+    // Checks if placing num at (row, col) is valid
+    public static boolean isValid(int[][] board, int row, int col, int num) {
+        // Check row and column
+        for (int i = 0; i < SIZE; i++) {
+            if (board[row][i] == num || board[i][col] == num)
+                return false;
+        }
+
+        // Check 3x3 box
+        int boxRowStart = (row / 3) * 3;
+        int boxColStart = (col / 3) * 3;
+
+        for (int r = boxRowStart; r < boxRowStart + 3; r++) {
+            for (int c = boxColStart; c < boxColStart + 3; c++) {
+                if (board[r][c] == num)
                     return false;
+            }
+        }
+
         return true;
+    }
+
+    // Prints the board
+    public static void printBoard(int[][] board) {
+        for (int row = 0; row < SIZE; row++) {
+            if (row % 3 == 0 && row != 0)
+                System.out.println("-----------+-----------+-----------");
+
+            for (int col = 0; col < SIZE; col++) {
+                if (col % 3 == 0 && col != 0)
+                    System.out.print(" | ");
+                System.out.print(" " + board[row][col] + " ");
+            }
+            System.out.println();
+        }
     }
 }
